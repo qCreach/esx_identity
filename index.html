@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/07f764a6f7.js" crossorigin="anonymous"></script>
+    <link href="http://fonts.cdnfonts.com/css/tt-commons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/mfd/09b70eb47474836f25a21660282ce0fd/raw/e06a670afcb2b861ed2ac4a1ef752d062ef6b46b/Gilroy.css">
+    <script src="nui://game/ui/jquery.js" type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <link href="http://fonts.cdnfonts.com/css/gilroy-bold" rel="stylesheet">
+    <title>cloud_identity</title>
+</head>
+<style>
+    :root {
+        --firstname-border-colour: #0040ff;
+        --lastname-border-colour: #0040ff;
+        --date-border-colour: #0040ff;
+        --height-border-colour: #0040ff;
+        
+        --createButton-border-colour: #0040ff;
+    }
+</style>
+<body>
+    <div id="container" style="display: none;">
+        <img src="img/bg.jpg" id="bg">
+        <div id="warning" style="display: none;">
+            <p id="warningText"></p>
+        </div>
+        <div id="registerMenu">
+            <p id="ServerName">SERVERNAME</p>
+            <p id="Information">Please create your character.</p>
+            <input id="vorname" placeholder="FIRSTNAME" maxlength="12">
+            <i class="fa-solid fa-user" id="user"></i>
+            <input id="nachname" placeholder="LASTNAME" maxlength="12">
+            <i class="fa-solid fa-user" id="user2"></i>
+            <input id="date" type="date" placeholder="EXAMPLE: 01.01.2000">
+            <i class="fa-solid fa-calendar" id="dateIcon"></i>
+            <input id="height" placeholder="HEIGHT" type="number" maxlength="3">
+            <input type="radio" name="MaleorFemale" id="Male" value="m" checked>
+            <input type="radio" name="MaleorFemale" id="Female" value="f">
+            <p id="MaleText">MALE</p>
+            <p id="FemaleText">FEMALE</p>
+            <button id="Erstellen">CREATE</button>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            window.addEventListener('message', function(event) {
+		        if (event.data.type == "showUI") {
+                    if(event.data.enable == true) {
+                        $("#ServerName").text(event.data.servername);
+                        $("#container").show();
+                    } else {
+                        $("#container").hide();
+                    }
+		        } else if (event.data.type == "Warning") {
+                    $("#warningText").text(event.data.message);
+                    $("#registerMenu").hide();
+                    $("#warning").show();
+                }
+	        });
+
+            $("#warning").click(function() {
+                $("#warning").hide();
+                $("#registerMenu").show();
+            });
+
+            $("#Erstellen").click(function () {
+                if(!isNaN($("#vorname").val()) || $("#vorname").val().length < 3) {
+                    $("#warningText").text("You have entered an invalid first name!")
+                    $("#registerMenu").hide();
+                    $("#warning").show();
+                } else if(!isNaN($("#nachname").val()) || $("#nachname").val().length < 3) {
+                    $("#warningText").text("You have entered an invalid surname!")
+                    $("#registerMenu").hide();
+                    $("#warning").show();
+                } else if(isNaN($("#height").val()) || $("#height").val() < 140 || $("#height").val() > 200) {
+                    var obj = $("#warningText").text('You have entered an invalid character size! \n The height of your character may only be between 140 - 200cm.!');
+                    obj.html(obj.html().replace(/\n/g,'<br/>'));
+                    $("#registerMenu").hide();
+                    $("#warning").show();
+                } else {
+                    var date = $("#date").val();
+		            var dateCheck = new Date($("#date").val());
+
+		            if (dateCheck == "Invalid Date") {
+			            date == "invalid";
+                        var obj = $("#warningText").text('You must enter a date of birth!');
+                        obj.html(obj.html().replace(/\n/g,'<br/>'));
+                        $("#registerMenu").hide();
+                        $("#warning").show();
+		            }
+
+                    $.post('http://cloud_identity/register', JSON.stringify({
+			            firstname: $("#vorname").val(),
+			            lastname: $("#nachname").val(),
+			            dateofbirth: date,
+			            sex: $("input[type='radio'][name='MaleorFemale']:checked").val(),
+			            height: $("#height").val()
+		            }));
+                }
+            });
+        })
+    </script>
+</body>
+</html>
